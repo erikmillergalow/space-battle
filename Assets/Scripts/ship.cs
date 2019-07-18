@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ship : MonoBehaviour
 {
-	public float movementSpeed = 25f;
+	public float movementSpeed = 75f;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
