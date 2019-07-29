@@ -7,17 +7,26 @@ public class Projectile : MonoBehaviour
 
 	public int speed = 30;
 	public Vector3 targetVector;
-    public float shipVelocity;
+    public float shipVelocityFactor;
 
 
-    // Start is called before the first frame update
+    // start is called before the first frame update
     void Start()
     {
     	Rigidbody2D body = gameObject.GetComponentInChildren<Rigidbody2D>();
-        body.velocity = targetVector.normalized * speed * shipVelocity;
+        
+        // modify projectile velocity based on ship movement, only in the
+        // direction of the ship's movement. speed divided by 4 may change as
+        // development continues
+        if (shipVelocityFactor > (speed / 4)) {
+            body.velocity = targetVector.normalized * speed  * shipVelocityFactor;
+        } else {
+            body.velocity = targetVector.normalized * speed;
+        }
+        
     }
 
-    // Update is called once per frame
+    // update is called once per frame
     void Update()
     {
         

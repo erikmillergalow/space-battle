@@ -38,8 +38,7 @@ public class Ship : MonoBehaviour
             projectile.targetVector = mouseVector - gameObject.transform.position;
 
             // alter velocity of projectile based on ship movement
-            projectile.shipVelocity = Vector3.Dot(body.velocity.normalized, transform.up.normalized); 
-
+            projectile.shipVelocityFactor = Vector3.Dot(body.velocity.normalized, transform.up.normalized); 
         }
     }
 
