@@ -8,6 +8,8 @@ public class Projectile : MonoBehaviour
 	public int speed = 30;
 	public Vector3 targetVector;
     public float shipVelocityFactor;
+    public GameObject origin; // set to the GameObject that creates the projectile
+
 
 
     // start is called before the first frame update
@@ -30,5 +32,11 @@ public class Projectile : MonoBehaviour
     void Update()
     {
         
+    }
+
+    void OnCollisionEnter2D(Collision2D collision) {
+        if (collision.gameObject != origin) {
+            Destroy(gameObject);
+        }
     }
 }

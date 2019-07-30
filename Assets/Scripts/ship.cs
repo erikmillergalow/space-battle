@@ -30,15 +30,20 @@ public class Ship : MonoBehaviour
 
             // create projectile and instance of script?
             GameObject projectileObject = Instantiate(projectilePrefab, 
-                                                gameObject.transform.position, 
-                                                Quaternion.identity);
+                                                      gameObject.transform.position, 
+                                                      Quaternion.identity);
             Projectile projectile = projectileObject.GetComponent<Projectile>();
 
             // position of mouse click - position of player = direction of projectile
             projectile.targetVector = mouseVector - gameObject.transform.position;
 
             // alter velocity of projectile based on ship movement
-            projectile.shipVelocityFactor = Vector3.Dot(body.velocity.normalized, transform.up.normalized); 
+            projectile.shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
+                                                        transform.up.normalized); 
+
+            // ignore collisions between shooter and projectile
+            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+                                    GetComponent<Collider2D>());
         }
     }
 
