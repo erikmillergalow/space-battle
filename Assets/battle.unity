@@ -437,24 +437,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c84c3f63ca9384a90a63242c15efca4c, type: 3}
---- !u!1 &1330584899 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1333370445903397682, guid: c84c3f63ca9384a90a63242c15efca4c,
-    type: 3}
-  m_PrefabInstance: {fileID: 223899953}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1330584903
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1330584899}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 352963e679a6641b2b7ac29f2be9207f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1665611346
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,6 +469,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2aba8dd749a4456b823ef2e733c5aff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movementSpeed: 75
+  projectilePrefab: {fileID: 5346922825066355113, guid: 7482ffdb047ff4e3e8034c58bd427bd3,
+    type: 3}
 --- !u!50 &1665611348
 Rigidbody2D:
   serializedVersion: 4
