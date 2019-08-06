@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Ship : MonoBehaviour
+public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
 
@@ -23,6 +24,11 @@ public class Ship : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (!isLocalPlayer) {
+            return;
+        }
+
         // check for mouse clicks
         if (Input.GetMouseButton(0)) {
             Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -50,8 +56,12 @@ public class Ship : MonoBehaviour
     // FixedUpdate() is used for physics calculations and processed less than Update()
     void FixedUpdate() {
 
-    	// check for player inputs
-    	if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) {
+        if (!isLocalPlayer) {
+            return;
+        }
+
+        // check for player inputs
+        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) {
     		float horizontalMovement = Input.GetAxisRaw("Horizontal") * movementSpeed;
     		float verticalMovement = Input.GetAxisRaw("Vertical") * movementSpeed;
 
