@@ -49,10 +49,15 @@ public class Projectile : NetworkBehaviour
     void OnCollisionEnter2D(Collision2D collision) {
         //if (collision.gameObject != origin) {
     	if (collision.gameObject.GetComponent<NetworkIdentity>().netId != spawnedBy) {
-            NetworkServer.Destroy(gameObject);
+            //NetworkServer.Destroy(gameObject);
+            CmdDestroyProjectile(collision.gameObject.GetComponent<NetworkIdentity>().netId);
         }
     }
 
-
+    [Command]
+    public void CmdDestroyProjectile(uint id){
+    	GameObject obj = NetworkServer.FindLocalObject(id);
+    	NetworkServer.Destroy(obj);
+    }
 
 }

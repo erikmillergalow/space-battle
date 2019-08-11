@@ -117,10 +117,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba473d3a8145047cb9eda56fb0e04f2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncInterval: 0
   speed: 30
   targetVector: {x: 0, y: 0, z: 0}
   shipVelocityFactor: 0
   origin: {fileID: 5346922825066355113}
+  spawnedBy: 0
 --- !u!61 &9036626099862846019
 BoxCollider2D:
   m_ObjectHideFlags: 0
