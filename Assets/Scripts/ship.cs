@@ -31,15 +31,19 @@ public class Ship : NetworkBehaviour
 
         // check for mouse clicks
         if (Input.GetMouseButton(0)) {
-            CmdShoot();
+            Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mouseVector.z = 0; // working in 2D...
+            float shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
+                                                        transform.up.normalized);
+            CmdShoot(mouseVector, shipVelocityFactor);
         }
     }
 
     [Command]
-    void CmdShoot() {
+    void CmdShoot(Vector3 mouseVector, float shipVelocityFactor) {
 
-        Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mouseVector.z = 0; // working in 2D...
+        //Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        //mouseVector.z = 0; // working in 2D...
 
         // create projectile and instance of script?
         GameObject projectileObject = Instantiate(projectilePrefab, 
@@ -51,9 +55,15 @@ public class Ship : NetworkBehaviour
         projectile.targetVector = mouseVector - gameObject.transform.position;
 
         // alter velocity of projectile based on ship movement
-        projectile.shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
-                                                        transform.up.normalized); 
-        // ignore collisions between shooter and projectile
+        //projectile.shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
+        //                                                transform.up.normalized);
+
+        projectile.shipVelocityFactor = shipVelocityFactor;
+
+        // so clients can ignore the collision
+        projectile.spawnedBy = netId; 
+        
+        // ignore collisions between shooter and projectile locally
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
         NetworkServer.Spawn(projectileObject);
