@@ -47,17 +47,14 @@ public class Projectile : NetworkBehaviour
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
-        //if (collision.gameObject != origin) {
-    	if (collision.gameObject.GetComponent<NetworkIdentity>().netId != spawnedBy) {
-            //NetworkServer.Destroy(gameObject);
-            CmdDestroyProjectile(collision.gameObject.GetComponent<NetworkIdentity>().netId);
-        }
-    }
+        if (collision.gameObject != origin && collision.gameObject.tag == "Wall") {
+ 			Destroy(this.gameObject);
+ 		}
 
-    [Command]
-    public void CmdDestroyProjectile(uint id){
-    	GameObject obj = NetworkServer.FindLocalObject(id);
-    	NetworkServer.Destroy(obj);
+ 		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") {
+ 			// deal damage here?
+ 			Destroy(this.gameObject);
+ 		}
     }
 
 }
