@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
-public class Projectile : MonoBehaviour
+public class Projectile : NetworkBehaviour
 {
 
 	public int speed = 30;
@@ -10,7 +11,18 @@ public class Projectile : MonoBehaviour
     public float shipVelocityFactor;
     public GameObject origin; // set to the GameObject that creates the projectile
 
+    [SyncVar]
+    public uint spawnedBy;
 
+
+    public override void OnStartClient() {
+    	GameObject spawner = NetworkServer.FindLocalObject(spawnedBy);
+
+    	//GameObject spawner = NetworkIdentity.spawned[spawnedBy];
+
+    	// ignore collision with player who shoots on client
+    	Physics2D.IgnoreCollision(GetComponent<Collider2D>(), spawner.GetComponent<Collider2D>());
+    }
 
     // start is called before the first frame update
     void Start()
@@ -35,8 +47,15 @@ public class Projectile : MonoBehaviour
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
-        if (collision.gameObject != origin) {
-            Destroy(gameObject);
-        }
+        if (collision.gameObject != origin && collision.gameObject.tag == "Wall") {
+ 			Destroy(this.gameObject);
+ 		}
+
+ 		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") {
+ 			this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
+ 			// deal damage here?
+ 			Destroy(this.gameObject);
+ 		}
     }
+
 }
