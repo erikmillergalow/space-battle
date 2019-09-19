@@ -18,8 +18,6 @@ public class Projectile : NetworkBehaviour
     public override void OnStartClient() {
     	GameObject spawner = NetworkServer.FindLocalObject(spawnedBy);
 
-    	//GameObject spawner = NetworkIdentity.spawned[spawnedBy];
-
     	// ignore collision with player who shoots on client
     	Physics2D.IgnoreCollision(GetComponent<Collider2D>(), spawner.GetComponent<Collider2D>());
     }
