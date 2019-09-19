@@ -11,7 +11,6 @@ public class MenuStar : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-        //animator.enabled = false;
         StartCoroutine("Flicker");
     }
 
@@ -21,14 +20,12 @@ public class MenuStar : MonoBehaviour
         
     }
 
+    // stars flicker at random intervals
     IEnumerator Flicker() {
     	while (true) {
-	
-			//animator.enabled = false;
-			float delay = Random.Range(2.0f, 4.0f);
+			float delay = Random.Range(2.0f, 5.0f);
 			yield return new WaitForSeconds(delay);
     		animator.Play("Twinkle", 0);
-    		//animator.enabled = true;
     	}
     }
 }
