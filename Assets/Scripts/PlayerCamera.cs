@@ -27,13 +27,13 @@ public class PlayerCamera : MonoBehaviour
 
         	Vector3 playerDirection = (player.transform.position - positionNoZ);
 
-        	interpolationVelocity = playerDirection.magnitude * 5f;
+        	interpolationVelocity = playerDirection.magnitude * 10f;
 
         	playerPosition = transform.position + (playerDirection.normalized * 
         										   interpolationVelocity * 
         										   Time.deltaTime);
 
-        	transform.position = Vector3.Lerp(transform.position, playerPosition + offset, 0.25f);
+        	transform.position = Vector3.Lerp(transform.position, playerPosition + offset, 0.3f);
         }
     }
 }
