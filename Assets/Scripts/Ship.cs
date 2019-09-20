@@ -47,7 +47,30 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdShoot(Vector3 mouseVector, float shipVelocityFactor) {
 
-        // create projectile and instance of script?
+        // // create projectile instance
+        // GameObject projectileObject = Instantiate(projectilePrefab, 
+        //                                           gameObject.transform.position, 
+        //                                           Quaternion.identity);
+        // Projectile projectile = projectileObject.GetComponent<Projectile>();
+
+        // // position of mouse click - position of player = direction of projectile
+        // projectile.targetVector = mouseVector - gameObject.transform.position;
+
+        // projectile.shipVelocityFactor = shipVelocityFactor;
+
+        // // so clients can ignore the collision
+        // projectile.spawnedBy = netId; 
+        
+        // // ignore collisions between shooter and projectile locally
+        // Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+        //                           GetComponent<Collider2D>());
+        
+        RpcShoot(mouseVector, shipVelocityFactor);
+    }
+
+    [ClientRpc]
+    private void RpcShoot(Vector3 mouseVector, float shipVelocityFactor) {
+        // create projectile instance
         GameObject projectileObject = Instantiate(projectilePrefab, 
                                                   gameObject.transform.position, 
                                                   Quaternion.identity);
@@ -64,7 +87,8 @@ public class Ship : NetworkBehaviour
         // ignore collisions between shooter and projectile locally
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
-        NetworkServer.Spawn(projectileObject);
+        
+        //Spawn(projectileObject);
     }
 
     // FixedUpdate() is used for physics calculations and processed less than Update()
