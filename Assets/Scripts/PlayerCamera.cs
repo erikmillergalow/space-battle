@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerCamera : MonoBehaviour
 {
 
-	public float interpolationVelocity;
+	public float interpolatedVelocity;
 	public float minimumDistance;
 	public float followDistance;
 	public GameObject player;
@@ -27,10 +27,10 @@ public class PlayerCamera : MonoBehaviour
 
         	Vector3 playerDirection = (player.transform.position - positionNoZ);
 
-        	interpolationVelocity = playerDirection.magnitude * 10f;
+        	interpolatedVelocity = playerDirection.magnitude * 10f;
 
         	playerPosition = transform.position + (playerDirection.normalized * 
-        										   interpolationVelocity * 
+        										   interpolatedVelocity * 
         										   Time.deltaTime);
 
         	transform.position = Vector3.Lerp(transform.position, playerPosition + offset, 0.3f);

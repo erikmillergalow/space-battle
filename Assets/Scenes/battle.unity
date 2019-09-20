@@ -470,7 +470,7 @@ Camera:
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
-  m_AllowMSAA: 0
+  m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -522,7 +522,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5bba7af8e17341b8b7621500a2e85bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interpolationVelocity: 0
+  interpolatedVelocity: 0
   minimumDistance: 0
   followDistance: 0
   player: {fileID: 0}
