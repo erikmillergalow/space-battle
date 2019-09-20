@@ -16,14 +16,19 @@ public class Ship : NetworkBehaviour
     {
         body = gameObject.GetComponent<Rigidbody2D>();
 
+        // set target of main camera's follow script
+        if (isLocalPlayer) {
+            PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
+            playerCamera.player = this.gameObject;
+        }
+
         if (body == null) {
         	Debug.LogError("Player::Start can't find RigidBody2D");
         }
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
 
         if (!isLocalPlayer) {
             return;
