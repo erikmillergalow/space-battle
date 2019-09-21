@@ -16,14 +16,19 @@ public class Ship : NetworkBehaviour
     {
         body = gameObject.GetComponent<Rigidbody2D>();
 
+        // set target of main camera's follow script
+        if (isLocalPlayer) {
+            PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
+            playerCamera.player = this.gameObject;
+        }
+
         if (body == null) {
         	Debug.LogError("Player::Start can't find RigidBody2D");
         }
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
 
         if (!isLocalPlayer) {
             return;
@@ -41,8 +46,13 @@ public class Ship : NetworkBehaviour
 
     [Command]
     void CmdShoot(Vector3 mouseVector, float shipVelocityFactor) {
+        // instantiate projectiles on clients        
+        RpcShoot(mouseVector, shipVelocityFactor);
+    }
 
-        // create projectile and instance of script?
+    [ClientRpc]
+    private void RpcShoot(Vector3 mouseVector, float shipVelocityFactor) {
+        // create projectile instance
         GameObject projectileObject = Instantiate(projectilePrefab, 
                                                   gameObject.transform.position, 
                                                   Quaternion.identity);
@@ -59,7 +69,6 @@ public class Ship : NetworkBehaviour
         // ignore collisions between shooter and projectile locally
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
-        NetworkServer.Spawn(projectileObject);
     }
 
     // FixedUpdate() is used for physics calculations and processed less than Update()
