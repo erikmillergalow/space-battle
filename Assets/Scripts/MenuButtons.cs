@@ -3,38 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Menu_Buttons : MonoBehaviour
+public class MenuButtons : MonoBehaviour
 {
     public GameObject MainMenu;
     public GameObject GameModeMenu;
-    // Start is called before the first frame update
-    public void Start()
-    {
+
+    public void Start() {
         MainMenu.SetActive(true);
         GameModeMenu.SetActive(false);
     }
-    public void PlayFreePlay()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+
+    public void PlayTutorial() {
+        SceneManager.LoadScene("Tutorial");
     }
 
-    public void PlayMultiplayer()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 2);
+    public void PlayMultiplayer() {
+        SceneManager.LoadScene("Battle");
     }
 
-    public void ShowMenuPanel ()
-    {
+    public void ShowMenuPanel () {
         MainMenu.SetActive(true);
         GameModeMenu.SetActive(false);
     }
-    public void ShowGameModePanel()
-    {
+
+    public void ShowGameModePanel() {
         MainMenu.SetActive(false);
         GameModeMenu.SetActive(true);
     }
-    public void QuitGame()
-    {
+
+    public void QuitGame() {
         Debug.Log("Quit");
         Application.Quit();
     }
