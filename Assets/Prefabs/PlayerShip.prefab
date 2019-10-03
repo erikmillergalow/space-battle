@@ -148,6 +148,8 @@ MonoBehaviour:
   movementSpeed: 75
   projectilePrefab: {fileID: 5346922825066355113, guid: 7482ffdb047ff4e3e8034c58bd427bd3,
     type: 3}
+  shieldPrefab: {fileID: 8152079841563214022, guid: 239008fc6ffe641beb3fe4dada42a08b,
+    type: 3}
 --- !u!114 &77144011146323273
 MonoBehaviour:
   m_ObjectHideFlags: 0

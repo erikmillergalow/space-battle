@@ -10,6 +10,7 @@ public class Ship : NetworkBehaviour
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
     public GameObject projectilePrefab;
+    public GameObject shieldPrefab;
 
     // Start is called before the first frame update
     void Start()
@@ -25,6 +26,12 @@ public class Ship : NetworkBehaviour
         if (body == null) {
         	Debug.LogError("Player::Start can't find RigidBody2D");
         }
+
+        // create shield object that will follow player around
+        var playerShield = Instantiate(shieldPrefab, 
+                                       gameObject.transform.position, 
+                                       Quaternion.identity, 
+                                       this.transform);
     }
 
     // Update is called once per frame
