@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 9131612052246195547}
   - component: {fileID: 77144011146323273}
   - component: {fileID: 2819719835338383518}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: PlayerShip
   m_TagString: Ship
   m_Icon: {fileID: 0}
@@ -147,6 +147,8 @@ MonoBehaviour:
   syncInterval: 0.1
   movementSpeed: 75
   projectilePrefab: {fileID: 5346922825066355113, guid: 7482ffdb047ff4e3e8034c58bd427bd3,
+    type: 3}
+  shieldPrefab: {fileID: 8152079841563214022, guid: 239008fc6ffe641beb3fe4dada42a08b,
     type: 3}
 --- !u!114 &77144011146323273
 MonoBehaviour:

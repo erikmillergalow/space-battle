@@ -9,13 +9,16 @@ public class Projectile : NetworkBehaviour
 	public int speed = 30;
 	public Vector3 targetVector;
     public float shipVelocityFactor;
-    public GameObject origin; // set to the GameObject that creates the projectile
+
+     // set to the GameObject that creates the projectile
+    public GameObject origin;
 
     [SyncVar]
     public uint spawnedBy;
 
 
-    public override void OnStartClient() {
+    public override void OnStartClient() 
+    {
     	GameObject spawner = NetworkServer.FindLocalObject(spawnedBy);
 
     	// ignore collision with player who shoots on client
@@ -44,16 +47,33 @@ public class Projectile : NetworkBehaviour
         
     }
 
-    void OnCollisionEnter2D(Collision2D collision) {
+    void OnCollisionEnter2D(Collision2D collision) 
+    {
+        if (collision.gameObject != origin && collision.gameObject.tag == "Shield") {
+            this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
+
+            // trigger shield to appear (also need to deal shield damage)
+            triggerShield(collision.gameObject.GetComponent<Shield>());
+            
+            Destroy(this.gameObject);
+        }
+        
         if (collision.gameObject != origin && collision.gameObject.tag == "Wall") {
  			Destroy(this.gameObject);
  		}
 
  		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") {
  			this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
- 			// deal damage here?
+ 			
+            // deal damage here?
  			Destroy(this.gameObject);
  		}
+    }
+
+    void triggerShield(Shield shield)
+    {
+        var currentShieldColor = shield.sprite.color;
+        shield.sprite.color = new Color(currentShieldColor.r, currentShieldColor.g, currentShieldColor.b, 1f);
     }
 
 }
