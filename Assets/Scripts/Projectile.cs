@@ -23,8 +23,6 @@ public class Projectile : NetworkBehaviour
 
     	// ignore collision with player who shoots on client
     	Physics2D.IgnoreCollision(GetComponent<Collider2D>(), spawner.GetComponent<Collider2D>());
-        //Physics2D.IgnoreCollision(GetComponent<Collider2D>(), 
-        //                          spawner.transform.Find("Shield").gameObject.GetComponent<Collider2D>());
     }
 
     // start is called before the first frame update
@@ -51,14 +49,12 @@ public class Projectile : NetworkBehaviour
 
     void OnCollisionEnter2D(Collision2D collision) 
     {
-
         if (collision.gameObject != origin && collision.gameObject.tag == "Shield") {
             this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
-            
-            print("about to trigger shield");
+
             // trigger shield to appear (also need to deal shield damage)
             triggerShield(collision.gameObject.GetComponent<Shield>());
-
+            
             Destroy(this.gameObject);
         }
         
@@ -68,17 +64,14 @@ public class Projectile : NetworkBehaviour
 
  		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") {
  			this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
- 			// deal damage here?
+ 			
+            // deal damage here?
  			Destroy(this.gameObject);
  		}
-
-        print(collision.gameObject.tag);
-
     }
 
     void triggerShield(Shield shield)
     {
-        print("in shield trigger func");
         var currentShieldColor = shield.sprite.color;
         shield.sprite.color = new Color(currentShieldColor.r, currentShieldColor.g, currentShieldColor.b, 1f);
     }

@@ -82,6 +82,7 @@ public class Ship : NetworkBehaviour
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
 
+        // allow projectiles out of the shooting player's shield
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   playerShield.GetComponent<Collider2D>());
     }
