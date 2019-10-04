@@ -9,17 +9,22 @@ public class Projectile : NetworkBehaviour
 	public int speed = 30;
 	public Vector3 targetVector;
     public float shipVelocityFactor;
-    public GameObject origin; // set to the GameObject that creates the projectile
+
+     // set to the GameObject that creates the projectile
+    public GameObject origin;
 
     [SyncVar]
     public uint spawnedBy;
 
 
-    public override void OnStartClient() {
+    public override void OnStartClient() 
+    {
     	GameObject spawner = NetworkServer.FindLocalObject(spawnedBy);
 
     	// ignore collision with player who shoots on client
     	Physics2D.IgnoreCollision(GetComponent<Collider2D>(), spawner.GetComponent<Collider2D>());
+        //Physics2D.IgnoreCollision(GetComponent<Collider2D>(), 
+        //                          spawner.transform.Find("Shield").gameObject.GetComponent<Collider2D>());
     }
 
     // start is called before the first frame update
@@ -44,7 +49,19 @@ public class Projectile : NetworkBehaviour
         
     }
 
-    void OnCollisionEnter2D(Collision2D collision) {
+    void OnCollisionEnter2D(Collision2D collision) 
+    {
+
+        if (collision.gameObject != origin && collision.gameObject.tag == "Shield") {
+            this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
+            
+            print("about to trigger shield");
+            // trigger shield to appear (also need to deal shield damage)
+            triggerShield(collision.gameObject.GetComponent<Shield>());
+
+            Destroy(this.gameObject);
+        }
+        
         if (collision.gameObject != origin && collision.gameObject.tag == "Wall") {
  			Destroy(this.gameObject);
  		}
@@ -54,6 +71,16 @@ public class Projectile : NetworkBehaviour
  			// deal damage here?
  			Destroy(this.gameObject);
  		}
+
+        print(collision.gameObject.tag);
+
+    }
+
+    void triggerShield(Shield shield)
+    {
+        print("in shield trigger func");
+        var currentShieldColor = shield.sprite.color;
+        shield.sprite.color = new Color(currentShieldColor.r, currentShieldColor.g, currentShieldColor.b, 1f);
     }
 
 }

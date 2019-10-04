@@ -11,6 +11,7 @@ public class Ship : NetworkBehaviour
 	private Rigidbody2D body;
     public GameObject projectilePrefab;
     public GameObject shieldPrefab;
+    private Shield playerShield;
 
     // Start is called before the first frame update
     void Start()
@@ -19,19 +20,23 @@ public class Ship : NetworkBehaviour
 
         // set target of main camera's follow script
         if (isLocalPlayer) {
+            print("local");
             PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
             playerCamera.player = this.gameObject;
         }
+
+        // create shield object that will follow player around
+        var shield = Instantiate(shieldPrefab, 
+                             gameObject.transform.position, 
+                             Quaternion.identity, 
+                             this.transform);
+
+        playerShield = shield.GetComponent<Shield>();
 
         if (body == null) {
         	Debug.LogError("Player::Start can't find RigidBody2D");
         }
 
-        // create shield object that will follow player around
-        var playerShield = Instantiate(shieldPrefab, 
-                                       gameObject.transform.position, 
-                                       Quaternion.identity, 
-                                       this.transform);
     }
 
     // Update is called once per frame
@@ -76,6 +81,9 @@ public class Ship : NetworkBehaviour
         // ignore collisions between shooter and projectile locally
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
+
+        Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+                                  playerShield.GetComponent<Collider2D>());
     }
 
     // FixedUpdate() is used for physics calculations and processed less than Update()
