@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 721712210949945231}
   - component: {fileID: 4910584260106535569}
   - component: {fileID: 7547025602842430105}
+  - component: {fileID: 1763987163111761014}
   m_Layer: 9
   m_Name: Shield
   m_TagString: Shield
@@ -94,6 +95,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cffdc598b91c7476d800bcb2e2d9d23b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  shieldHealth: 100
   sprite: {fileID: 0}
 --- !u!58 &4910584260106535569
 CircleCollider2D:
@@ -132,3 +136,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1763987163111761014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8152079841563214022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serverOnly: 0
+  localPlayerAuthority: 1
+  m_AssetId: 239008fc6ffe641beb3fe4dada42a08b
+  m_SceneId: 0
