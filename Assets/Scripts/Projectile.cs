@@ -71,8 +71,6 @@ public class Projectile : NetworkBehaviour
  		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") 
  		{
  			this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
- 			
-            // deal damage here or as in Ship.cs?
  			Destroy(this.gameObject);
  		}
     }
