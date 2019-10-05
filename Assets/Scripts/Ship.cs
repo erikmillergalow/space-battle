@@ -6,6 +6,8 @@ using Mirror;
 public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
+	public float playerHealth = 150f;
+	public float shieldHealth = 150f;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
@@ -19,7 +21,8 @@ public class Ship : NetworkBehaviour
         body = gameObject.GetComponent<Rigidbody2D>();
 
         // set target of main camera's follow script
-        if (isLocalPlayer) {
+        if (isLocalPlayer) 
+        {
             print("local");
             PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
             playerCamera.player = this.gameObject;
@@ -33,21 +36,25 @@ public class Ship : NetworkBehaviour
 
         playerShield = shield.GetComponent<Shield>();
 
-        if (body == null) {
+        if (body == null) 
+        {
         	Debug.LogError("Player::Start can't find RigidBody2D");
         }
 
     }
 
     // Update is called once per frame
-    void Update() {
+    void Update() 
+    {
 
-        if (!isLocalPlayer) {
+        if (!isLocalPlayer) 
+        {
             return;
         }
 
         // check for mouse clicks
-        if (Input.GetMouseButton(0)) {
+        if (Input.GetMouseButton(0)) 
+        {
             Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouseVector.z = 0; // working in 2D...
             float shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
@@ -56,14 +63,39 @@ public class Ship : NetworkBehaviour
         }
     }
 
+    // FixedUpdate() is used for physics calculations and processed less than Update()
+    void FixedUpdate() 
+    {
+
+        if (!isLocalPlayer) {
+            return;
+        }
+
+        // check for player inputs
+        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) 
+        {
+    		float horizontalMovement = Input.GetAxisRaw("Horizontal") * movementSpeed;
+    		float verticalMovement = Input.GetAxisRaw("Vertical") * movementSpeed;
+
+    		Vector2 heading = new Vector2(horizontalMovement, verticalMovement);
+
+    		body.AddForce(heading);
+
+    		// point ship in direction of movement input
+    		transform.up = body.velocity;
+    	}
+	}
+
     [Command]
-    void CmdShoot(Vector3 mouseVector, float shipVelocityFactor) {
+    void CmdShoot(Vector3 mouseVector, float shipVelocityFactor) 
+    {
         // instantiate projectiles on clients        
         RpcShoot(mouseVector, shipVelocityFactor);
     }
 
     [ClientRpc]
-    private void RpcShoot(Vector3 mouseVector, float shipVelocityFactor) {
+    private void RpcShoot(Vector3 mouseVector, float shipVelocityFactor) 
+    {
         // create projectile instance
         GameObject projectileObject = Instantiate(projectilePrefab, 
                                                   gameObject.transform.position, 
@@ -87,25 +119,60 @@ public class Ship : NetworkBehaviour
                                   playerShield.GetComponent<Collider2D>());
     }
 
-    // FixedUpdate() is used for physics calculations and processed less than Update()
-    void FixedUpdate() {
-
-        if (!isLocalPlayer) {
-            return;
-        }
-
-        // check for player inputs
-        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) {
-    		float horizontalMovement = Input.GetAxisRaw("Horizontal") * movementSpeed;
-    		float verticalMovement = Input.GetAxisRaw("Vertical") * movementSpeed;
-
-    		Vector2 heading = new Vector2(horizontalMovement, verticalMovement);
-
-    		body.AddForce(heading);
-
-    		// point ship in direction of movement input
-    		transform.up = body.velocity;
-
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+    	if (collision.gameObject.tag == "Projectile") 
+        {
+    		CmdTakeDamage(this.netId, collision.gameObject.GetComponent<Projectile>().damageAmount);
     	}
     }
+
+    // player ship health and damage
+    [Command]
+    void CmdTakeDamage(uint netId, float damageAmount) 
+    {
+    	RpcTakeDamage(netId, damageAmount);
+    }
+
+    [ClientRpc]
+    void RpcTakeDamage(uint netId, float damageAmount)
+    {
+        if (this.netId == netId) 
+        {
+            playerHealth -= damageAmount;
+
+            if (playerHealth < 0) 
+            {
+                NetworkIdentity.Destroy(this.gameObject);
+            }
+        }
+    }
+
+    // player shield health and damage
+    public void TakeShieldDamage(uint netId, float damageAmount)
+    {
+    	CmdTakeShieldDamage(netId, damageAmount);
+    }
+
+    [Command]
+    void CmdTakeShieldDamage(uint netId, float damageAmount) 
+    {
+        RpcTakeShieldDamage(netId, damageAmount);
+    }
+
+    [ClientRpc]
+    void RpcTakeShieldDamage(uint netId, float damageAmount)
+    {
+        if (playerShield.netId == netId) 
+        {
+            shieldHealth -= damageAmount;
+
+            if (shieldHealth < 0) 
+            {
+                NetworkIdentity.Destroy(this.playerShield.gameObject);
+            }
+        }
+    }
+
 }
+
