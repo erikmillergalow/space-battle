@@ -6,8 +6,8 @@ using Mirror;
 public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
-	public float playerHealth = 100f;
-	public float shieldHealth = 100f;
+	public float playerHealth = 150f;
+	public float shieldHealth = 150f;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
@@ -21,7 +21,8 @@ public class Ship : NetworkBehaviour
         body = gameObject.GetComponent<Rigidbody2D>();
 
         // set target of main camera's follow script
-        if (isLocalPlayer) {
+        if (isLocalPlayer) 
+        {
             print("local");
             PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
             playerCamera.player = this.gameObject;
@@ -34,31 +35,26 @@ public class Ship : NetworkBehaviour
                              this.transform);
 
         playerShield = shield.GetComponent<Shield>();
-        //SetShieldClientAuthority();
 
-        if (body == null) {
+        if (body == null) 
+        {
         	Debug.LogError("Player::Start can't find RigidBody2D");
         }
 
     }
 
-
-  //   [Server]
-  //   public virtual void SetShieldClientAuthority()
-  //   {
-		// playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
-  //   }
-
     // Update is called once per frame
     void Update() 
     {
 
-        if (!isLocalPlayer) {
+        if (!isLocalPlayer) 
+        {
             return;
         }
 
         // check for mouse clicks
-        if (Input.GetMouseButton(0)) {
+        if (Input.GetMouseButton(0)) 
+        {
             Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mouseVector.z = 0; // working in 2D...
             float shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
@@ -76,7 +72,8 @@ public class Ship : NetworkBehaviour
         }
 
         // check for player inputs
-        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) {
+        if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0) 
+        {
     		float horizontalMovement = Input.GetAxisRaw("Horizontal") * movementSpeed;
     		float verticalMovement = Input.GetAxisRaw("Vertical") * movementSpeed;
 
@@ -124,46 +121,56 @@ public class Ship : NetworkBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-    	if (collision.gameObject.tag == "Projectile") {
-    		CmdTakeDamage(collision.gameObject.GetComponent<Projectile>().damageAmount);
+    	if (collision.gameObject.tag == "Projectile") 
+        {
+    		CmdTakeDamage(this.netId, collision.gameObject.GetComponent<Projectile>().damageAmount);
     	}
     }
 
+    // player ship health and damage
     [Command]
-    void CmdTakeDamage(float damageAmount) 
+    void CmdTakeDamage(uint netId, float damageAmount) 
     {
-    	RpcTakeDamage(damageAmount);
+    	RpcTakeDamage(netId, damageAmount);
     }
 
     [ClientRpc]
-    void RpcTakeDamage(float damageAmount)
+    void RpcTakeDamage(uint netId, float damageAmount)
     {
-    	print("player taking damage");
-    	playerHealth -= damageAmount;
-    	print(playerHealth);
+        if (this.netId == netId) 
+        {
+            playerHealth -= damageAmount;
+
+            if (playerHealth < 0) 
+            {
+                NetworkIdentity.Destroy(this.gameObject);
+            }
+        }
     }
 
-    public void TakeShieldDamage(float damageAmount)
+    // player shield health and damage
+    public void TakeShieldDamage(uint netId, float damageAmount)
     {
-    	CmdTakeShieldDamage(damageAmount);
+    	CmdTakeShieldDamage(netId, damageAmount);
     }
 
     [Command]
-    void CmdTakeShieldDamage(float damageAmount) 
+    void CmdTakeShieldDamage(uint netId, float damageAmount) 
     {
-        RpcTakeShieldDamage(damageAmount);
+        RpcTakeShieldDamage(netId, damageAmount);
     }
 
     [ClientRpc]
-    void RpcTakeShieldDamage(float damageAmount)
+    void RpcTakeShieldDamage(uint netId, float damageAmount)
     {
-        print("playerShield taking damage");
-        shieldHealth -= damageAmount;
-        print(shieldHealth);
+        if (playerShield.netId == netId) 
+        {
+            shieldHealth -= damageAmount;
 
-        if (shieldHealth < 0) {
-            //NetworkIdentity.Destroy(playerShield);
-            Destroy(playerShield);
+            if (shieldHealth < 0) 
+            {
+                NetworkIdentity.Destroy(this.playerShield.gameObject);
+            }
         }
     }
 

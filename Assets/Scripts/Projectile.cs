@@ -34,9 +34,12 @@ public class Projectile : NetworkBehaviour
         // modify projectile velocity based on ship movement, only in the
         // direction of the ship's movement. speed divided by 4 may change as
         // development continues
-        if (shipVelocityFactor > (speed / 4)) {
+        if (shipVelocityFactor > (speed / 4)) 
+        {
             body.velocity = targetVector.normalized * speed  * shipVelocityFactor;
-        } else {
+        } 
+        else 
+        {
             body.velocity = targetVector.normalized * speed;
         }
         
@@ -50,7 +53,8 @@ public class Projectile : NetworkBehaviour
 
     void OnCollisionEnter2D(Collision2D collision) 
     {
-        if (collision.gameObject != origin && collision.gameObject.tag == "Shield") {
+        if (collision.gameObject != origin && collision.gameObject.tag == "Shield") 
+        {
             this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
 
             // trigger shield to appear (also need to deal shield damage)
@@ -59,11 +63,13 @@ public class Projectile : NetworkBehaviour
             Destroy(this.gameObject);
         }
         
-        if (collision.gameObject != origin && collision.gameObject.tag == "Wall") {
+        if (collision.gameObject != origin && collision.gameObject.tag == "Wall") 
+        {
  			Destroy(this.gameObject);
  		}
 
- 		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") {
+ 		if (collision.gameObject != origin && collision.gameObject.tag == "Ship") 
+ 		{
  			this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
  			
             // deal damage here or as in Ship.cs?
