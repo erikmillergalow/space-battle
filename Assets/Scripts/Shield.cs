@@ -7,10 +7,8 @@ using Mirror;
 public class Shield : NetworkBehaviour
 {
 
-	private float fadeRate = 0.01f;
-    //public float shieldHealth = 100f;
-
-	public SpriteRenderer sprite;
+    private float fadeRate = 0.01f;
+    public SpriteRenderer sprite;
 
     // Start is called before the first frame update
     void Start() 
