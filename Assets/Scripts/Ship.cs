@@ -144,6 +144,7 @@ public class Ship : NetworkBehaviour
             if (playerHealth < 0) 
             {
                 NetworkIdentity.Destroy(this.gameObject);
+                //respawn section?
             }
         }
     }
