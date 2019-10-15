@@ -1,13 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Mirror;
 
 public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
-	public float playerHealth = 150f;
-	public float shieldHealth = 150f;
+	
+	public float playerHealth = 100f;
+	public float shieldHealth = 100f;
+	public Slider shipHealthBar;
+	public Slider shieldHealthBar;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
@@ -26,6 +30,15 @@ public class Ship : NetworkBehaviour
             print("local");
             PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
             playerCamera.player = this.gameObject;
+
+            shipHealthBar = GameObject.FindGameObjectWithTag("ShipHealthBar").GetComponent<Slider>();
+            shieldHealthBar = GameObject.FindGameObjectWithTag("ShieldHealthBar").GetComponent<Slider>();
+
+            playerHealth = 100;
+        	shieldHealth = 100;
+
+        	shipHealthBar.value = playerHealth;
+        	shieldHealthBar.value = shieldHealth;
         }
 
         // create shield object that will follow player around
@@ -35,11 +48,6 @@ public class Ship : NetworkBehaviour
                              this.transform);
 
         playerShield = shield.GetComponent<Shield>();
-
-        if (body == null) 
-        {
-        	Debug.LogError("Player::Start can't find RigidBody2D");
-        }
 
     }
 
@@ -140,6 +148,7 @@ public class Ship : NetworkBehaviour
         if (this.netId == netId) 
         {
             playerHealth -= damageAmount;
+            shipHealthBar.value = playerHealth;
 
             if (playerHealth < 0) 
             {
@@ -166,6 +175,7 @@ public class Ship : NetworkBehaviour
         if (playerShield.netId == netId) 
         {
             shieldHealth -= damageAmount;
+            shieldHealthBar.value = shieldHealth;
 
             if (shieldHealth < 0) 
             {

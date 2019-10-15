@@ -8,6 +8,8 @@ TagManager:
   - Projectile
   - Wall
   - Shield
+  - ShipHealthBar
+  - ShieldHealthBar
   layers:
   - Default
   - TransparentFX
