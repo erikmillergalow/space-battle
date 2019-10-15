@@ -148,7 +148,11 @@ public class Ship : NetworkBehaviour
         if (this.netId == netId) 
         {
             playerHealth -= damageAmount;
-            shipHealthBar.value = playerHealth;
+
+            if (isLocalPlayer) 
+            {
+            	shipHealthBar.value = playerHealth;
+            }
 
             if (playerHealth < 0) 
             {
@@ -175,7 +179,11 @@ public class Ship : NetworkBehaviour
         if (playerShield.netId == netId) 
         {
             shieldHealth -= damageAmount;
-            shieldHealthBar.value = shieldHealth;
+            
+            if (isLocalPlayer)
+            {
+				shieldHealthBar.value = shieldHealth;
+            }
 
             if (shieldHealth < 0) 
             {
