@@ -12,6 +12,7 @@ public class Ship : NetworkBehaviour
 	public float shieldHealth = 100f;
 	public Slider shipHealthBar;
 	public Slider shieldHealthBar;
+    public bool shieldActive;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
@@ -27,7 +28,6 @@ public class Ship : NetworkBehaviour
         // set target of main camera's follow script
         if (isLocalPlayer) 
         {
-            print("local");
             PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
             playerCamera.player = this.gameObject;
 
@@ -39,6 +39,8 @@ public class Ship : NetworkBehaviour
 
         	shipHealthBar.value = playerHealth;
         	shieldHealthBar.value = shieldHealth;
+
+            //playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         }
 
         // create shield object that will follow player around
@@ -48,6 +50,10 @@ public class Ship : NetworkBehaviour
                              this.transform);
 
         playerShield = shield.GetComponent<Shield>();
+        // put this in a command...
+        playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+        shieldActive = true;
+
 
     }
 
@@ -123,13 +129,16 @@ public class Ship : NetworkBehaviour
                                   GetComponent<Collider2D>());
 
         // allow projectiles out of the shooting player's shield
-        Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
-                                  playerShield.GetComponent<Collider2D>());
+        if (shieldActive)
+        {
+            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+                                      playerShield.GetComponent<Collider2D>());
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-    	if (collision.gameObject.tag == "Projectile") 
+    	if (collision.gameObject.tag == "Projectile" && !shieldActive) 
         {
     		CmdTakeDamage(this.netId, collision.gameObject.GetComponent<Projectile>().damageAmount);
     	}
@@ -176,18 +185,22 @@ public class Ship : NetworkBehaviour
     [ClientRpc]
     void RpcTakeShieldDamage(uint netId, float damageAmount)
     {
-        if (playerShield.netId == netId) 
+        if (shieldActive)
         {
-            shieldHealth -= damageAmount;
-            
-            if (isLocalPlayer)
+            if (playerShield.netId == netId) 
             {
-				shieldHealthBar.value = shieldHealth;
-            }
+                shieldHealth -= damageAmount;
+                
+                if (isLocalPlayer)
+                {
+    				shieldHealthBar.value = shieldHealth;
+                }
 
-            if (shieldHealth < 0) 
-            {
-                NetworkIdentity.Destroy(this.playerShield.gameObject);
+                if (shieldHealth < 0) 
+                {
+                    NetworkIdentity.Destroy(this.playerShield.gameObject);
+                    shieldActive = false;
+                }
             }
         }
     }
