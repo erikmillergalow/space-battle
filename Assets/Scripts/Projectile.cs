@@ -7,7 +7,7 @@ public class Projectile : NetworkBehaviour
 {
 
 	public int speed = 30;
-    public float damageAmount = 10f;
+    public float damageAmount = 1f;
 	public Vector3 targetVector;
     public float shipVelocityFactor;
 

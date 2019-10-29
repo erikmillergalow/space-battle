@@ -9,11 +9,13 @@ public class Shield : NetworkBehaviour
 
     private float fadeRate = 0.01f;
     public SpriteRenderer sprite;
+    public float shieldHealth;
 
     // Start is called before the first frame update
     void Start() 
     {
         sprite = GetComponent<SpriteRenderer>();
+        shieldHealth = 100f;
     }
 
     // Update is called once per frame
@@ -31,7 +33,6 @@ public class Shield : NetworkBehaviour
         if (collision.gameObject.tag == "Projectile") 
         {
             // call shield damage function on parent Ship
-            print("shield collision registered");
             Ship parent = transform.parent.gameObject.GetComponent<Ship>();
             float damageAmount = collision.gameObject.GetComponent<Projectile>().damageAmount;
             parent.TakeShieldDamage(netId, damageAmount);

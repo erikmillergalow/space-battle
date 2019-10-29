@@ -1,13 +1,18 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Mirror;
 
 public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
-	public float playerHealth = 150f;
-	public float shieldHealth = 150f;
+	
+	public float playerHealth = 100f;
+	public float shieldHealth = 100f;
+	public Slider shipHealthBar;
+	public Slider shieldHealthBar;
+    public bool shieldActive;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
@@ -23,9 +28,17 @@ public class Ship : NetworkBehaviour
         // set target of main camera's follow script
         if (isLocalPlayer) 
         {
-            print("local");
             PlayerCamera playerCamera = Camera.main.gameObject.GetComponent<PlayerCamera>();
             playerCamera.player = this.gameObject;
+
+            shipHealthBar = GameObject.FindGameObjectWithTag("ShipHealthBar").GetComponent<Slider>();
+            shieldHealthBar = GameObject.FindGameObjectWithTag("ShieldHealthBar").GetComponent<Slider>();
+
+            playerHealth = 100;
+        	shieldHealth = 100;
+
+        	shipHealthBar.value = playerHealth;
+        	shieldHealthBar.value = shieldHealth;
         }
 
         // create shield object that will follow player around
@@ -35,12 +48,9 @@ public class Ship : NetworkBehaviour
                              this.transform);
 
         playerShield = shield.GetComponent<Shield>();
-
-        if (body == null) 
-        {
-        	Debug.LogError("Player::Start can't find RigidBody2D");
-        }
-
+        // this needs to be fixed because only the server can assign client authority, maybe put into a command?
+        playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+        shieldActive = true;
     }
 
     // Update is called once per frame
@@ -115,13 +125,16 @@ public class Ship : NetworkBehaviour
                                   GetComponent<Collider2D>());
 
         // allow projectiles out of the shooting player's shield
-        Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
-                                  playerShield.GetComponent<Collider2D>());
+        if (shieldActive)
+        {
+            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+                                      playerShield.GetComponent<Collider2D>());
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-    	if (collision.gameObject.tag == "Projectile") 
+    	if (collision.gameObject.tag == "Projectile" && !shieldActive) 
         {
     		CmdTakeDamage(this.netId, collision.gameObject.GetComponent<Projectile>().damageAmount);
     	}
@@ -140,6 +153,11 @@ public class Ship : NetworkBehaviour
         if (this.netId == netId) 
         {
             playerHealth -= damageAmount;
+
+            if (isLocalPlayer) 
+            {
+            	shipHealthBar.value = playerHealth;
+            }
 
             if (playerHealth < 0) 
             {
@@ -163,13 +181,22 @@ public class Ship : NetworkBehaviour
     [ClientRpc]
     void RpcTakeShieldDamage(uint netId, float damageAmount)
     {
-        if (playerShield.netId == netId) 
+        if (shieldActive)
         {
-            shieldHealth -= damageAmount;
-
-            if (shieldHealth < 0) 
+            if (playerShield.netId == netId) 
             {
-                NetworkIdentity.Destroy(this.playerShield.gameObject);
+                shieldHealth -= damageAmount;
+                
+                if (isLocalPlayer)
+                {
+    				shieldHealthBar.value = shieldHealth;
+                }
+
+                if (shieldHealth < 0) 
+                {
+                    NetworkIdentity.Destroy(this.playerShield.gameObject);
+                    shieldActive = false;
+                }
             }
         }
     }
