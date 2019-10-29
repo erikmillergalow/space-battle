@@ -39,8 +39,6 @@ public class Ship : NetworkBehaviour
 
         	shipHealthBar.value = playerHealth;
         	shieldHealthBar.value = shieldHealth;
-
-            //playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         }
 
         // create shield object that will follow player around
