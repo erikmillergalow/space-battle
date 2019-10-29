@@ -36,22 +36,6 @@ public class Shield : NetworkBehaviour
             Ship parent = transform.parent.gameObject.GetComponent<Ship>();
             float damageAmount = collision.gameObject.GetComponent<Projectile>().damageAmount;
             parent.TakeShieldDamage(netId, damageAmount);
-
-            /*shieldHealth -= damageAmount;
-            
-            if (parent.isLocalPlayer)
-            {
-                parent.shieldHealthBar.value = shieldHealth;
-
-                if (shieldHealth < 0) 
-                {
-                    NetworkIdentity.Destroy(this.gameObject);
-                    parent.shieldActive = false;
-                }
-
-            }*/
-
-
         }
     }
 }

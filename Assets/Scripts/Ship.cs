@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -50,11 +50,9 @@ public class Ship : NetworkBehaviour
                              this.transform);
 
         playerShield = shield.GetComponent<Shield>();
-        // put this in a command...
+        // this needs to be fixed because only the server can assign client authority, maybe put into a command?
         playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
         shieldActive = true;
-
-
     }
 
     // Update is called once per frame
