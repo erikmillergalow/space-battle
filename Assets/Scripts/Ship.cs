@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,17 +8,25 @@ public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
 	
+    public float playerHealthMax = 100f;
+    public float shieldHealthMax = 100f;
+
 	public float playerHealth = 100f;
 	public float shieldHealth = 100f;
 	public Slider shipHealthBar;
 	public Slider shieldHealthBar;
     public bool shieldActive;
 
+    // time to wait before respawning a shield (seconds)
+    public float shieldRechargeTime = 100f;
+
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
     public GameObject projectilePrefab;
     public GameObject shieldPrefab;
     private Shield playerShield;
+
+    private Coroutine rechargeRoutine;
 
     // Start is called before the first frame update
     void Start()
@@ -34,8 +42,8 @@ public class Ship : NetworkBehaviour
             shipHealthBar = GameObject.FindGameObjectWithTag("ShipHealthBar").GetComponent<Slider>();
             shieldHealthBar = GameObject.FindGameObjectWithTag("ShieldHealthBar").GetComponent<Slider>();
 
-            playerHealth = 100;
-        	shieldHealth = 100;
+            playerHealth = playerHealthMax;
+        	shieldHealth = shieldHealthMax;
 
         	shipHealthBar.value = playerHealth;
         	shieldHealthBar.value = shieldHealth;
@@ -70,6 +78,15 @@ public class Ship : NetworkBehaviour
             float shipVelocityFactor = Vector3.Dot(body.velocity.normalized, 
                                                         transform.up.normalized);
             CmdShoot(mouseVector, shipVelocityFactor);
+        }
+
+        if (!shieldActive)
+        {
+            shieldRechargeTime -= 1;
+        }
+
+        if (shieldRechargeTime == 0){
+            CmdRespawnShield(netId);
         }
     }
 
@@ -197,7 +214,49 @@ public class Ship : NetworkBehaviour
                     NetworkIdentity.Destroy(this.playerShield.gameObject);
                     shieldActive = false;
                 }
+
+                // start countdown to when shield wil recharge
+                if (rechargeRoutine != null)
+                {
+                    StopCoroutine(rechargeRoutine);
+                }
+
+                rechargeRoutine = StartCoroutine("ShieldRechargeTimer");
             }
+        }
+    }
+
+    [Command]
+    void CmdRespawnShield(uint netId)
+    {
+        RpcRespawnShield(netId);
+    }
+
+    [ClientRpc]
+    void RpcRespawnShield(uint netId)
+    {
+         // create shield object that will follow player around
+        var shield = Instantiate(shieldPrefab, 
+                             gameObject.transform.position, 
+                             Quaternion.identity, 
+                             this.transform);
+
+        playerShield = shield.GetComponent<Shield>();
+        // this needs to be fixed because only the server can assign client authority, maybe put into a command?
+        playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+    }
+
+    IEnumerator ShieldRechargeTimer()
+    {
+        print("waiting to recharge shield");
+        yield return new WaitForSeconds(2f);
+
+        while(shieldHealth < shieldHealthMax)
+        {
+            shieldHealth += 0.00001f;
+            print(shieldHealth);
+            shieldHealthBar.value = shieldHealth;
+
         }
     }
 
