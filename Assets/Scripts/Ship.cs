@@ -253,10 +253,10 @@ public class Ship : NetworkBehaviour
 
         while(shieldHealth < shieldHealthMax)
         {
-            shieldHealth += 0.00001f;
+            shieldHealth += 1f;
             print(shieldHealth);
             shieldHealthBar.value = shieldHealth;
-
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
