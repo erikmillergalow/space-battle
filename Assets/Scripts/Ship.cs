@@ -11,10 +11,13 @@ public class Ship : NetworkBehaviour
     public float playerHealthMax = 100f;
     public float shieldHealthMax = 100f;
 
+    [SyncVar]
 	public float playerHealth = 100f;
+    [SyncVar]
 	public float shieldHealth = 100f;
 	public Slider shipHealthBar;
 	public Slider shieldHealthBar;
+    [SyncVar]
     public bool shieldActive;
 
     // time to wait before respawning a shield (seconds)
@@ -54,6 +57,7 @@ public class Ship : NetworkBehaviour
                              gameObject.transform.position, 
                              Quaternion.identity, 
                              this.transform);
+        //NetworkServer.Spawn(shield);
 
         playerShield = shield.GetComponent<Shield>();
         // this needs to be fixed because only the server can assign client authority, maybe put into a command?
@@ -80,14 +84,9 @@ public class Ship : NetworkBehaviour
             CmdShoot(mouseVector, shipVelocityFactor);
         }
 
-        if (!shieldActive)
-        {
-            shieldRechargeTime -= 1;
-        }
+        shieldHealthBar.value = shieldHealth;
+        shipHealthBar.value = playerHealth;
 
-        if (shieldRechargeTime == 0){
-            CmdRespawnShield(netId);
-        }
     }
 
     // FixedUpdate() is used for physics calculations and processed less than Update()
@@ -111,6 +110,7 @@ public class Ship : NetworkBehaviour
     		// point ship in direction of movement input
     		transform.up = body.velocity;
     	}
+
 	}
 
     [Command]
@@ -129,6 +129,13 @@ public class Ship : NetworkBehaviour
                                                   Quaternion.identity);
         Projectile projectile = projectileObject.GetComponent<Projectile>();
 
+        // allow projectiles out of the shooting player's shield
+        if (shieldActive)
+        {
+            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+                                      playerShield.GetComponent<Collider2D>());
+        }
+
         // position of mouse click - position of player = direction of projectile
         projectile.targetVector = mouseVector - gameObject.transform.position;
 
@@ -140,13 +147,6 @@ public class Ship : NetworkBehaviour
         // ignore collisions between shooter and projectile locally
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
-
-        // allow projectiles out of the shooting player's shield
-        if (shieldActive)
-        {
-            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
-                                      playerShield.GetComponent<Collider2D>());
-        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -161,20 +161,10 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdTakeDamage(uint netId, float damageAmount) 
     {
-    	RpcTakeDamage(netId, damageAmount);
-    }
-
-    [ClientRpc]
-    void RpcTakeDamage(uint netId, float damageAmount)
-    {
+    	//RpcTakeDamage(netId, damageAmount);
         if (this.netId == netId) 
         {
             playerHealth -= damageAmount;
-
-            if (isLocalPlayer) 
-            {
-            	shipHealthBar.value = playerHealth;
-            }
 
             if (playerHealth < 0) 
             {
@@ -192,12 +182,7 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdTakeShieldDamage(uint netId, float damageAmount) 
     {
-        RpcTakeShieldDamage(netId, damageAmount);
-    }
-
-    [ClientRpc]
-    void RpcTakeShieldDamage(uint netId, float damageAmount)
-    {
+        //RpcTakeShieldDamage(netId, damageAmount);
         if (shieldActive)
         {
             if (playerShield.netId == netId) 
@@ -206,7 +191,7 @@ public class Ship : NetworkBehaviour
                 
                 if (isLocalPlayer)
                 {
-    				shieldHealthBar.value = shieldHealth;
+                    shieldHealthBar.value = shieldHealth;
                 }
 
                 if (shieldHealth < 0) 
@@ -229,7 +214,19 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdRespawnShield(uint netId)
     {
-        RpcRespawnShield(netId);
+        //RpcRespawnShield(netId);
+         // create shield object that will follow player around
+        var shield = Instantiate(shieldPrefab, 
+                             gameObject.transform.position, 
+                             Quaternion.identity, 
+                             this.transform);
+        //NetworkServer.Spawn(shield);
+
+        playerShield = shield.GetComponent<Shield>();
+
+        // this needs to be fixed because only the server can assign client authority, maybe put into a command?
+        playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+        shieldActive = true;
     }
 
     [ClientRpc]
@@ -240,8 +237,10 @@ public class Ship : NetworkBehaviour
                              gameObject.transform.position, 
                              Quaternion.identity, 
                              this.transform);
+        //NetworkServer.Spawn(shield);
 
         playerShield = shield.GetComponent<Shield>();
+
         // this needs to be fixed because only the server can assign client authority, maybe put into a command?
         playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
     }
@@ -251,14 +250,25 @@ public class Ship : NetworkBehaviour
         print("waiting to recharge shield");
         yield return new WaitForSeconds(2f);
 
+        if (!shieldActive) {
+            CmdRespawnShield(netId); 
+        }
+
+
         while(shieldHealth < shieldHealthMax)
         {
-            shieldHealth += 1f;
-            print(shieldHealth);
-            shieldHealthBar.value = shieldHealth;
-            yield return new WaitForSeconds(0.1f);
+            CmdAddShieldHealth(netId);
+            yield return new WaitForSeconds(0.01f);
         }
     }
 
+    [Command]
+    void CmdAddShieldHealth(uint netId) 
+    {
+        if (this.netId == netId)
+        {
+            shieldHealth += 1f;
+        }
+    }
 }
 
