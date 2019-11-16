@@ -182,7 +182,6 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdTakeShieldDamage(uint netId, float damageAmount) 
     {
-        //RpcTakeShieldDamage(netId, damageAmount);
         if (shieldActive)
         {
             if (playerShield.netId == netId) 
@@ -194,9 +193,10 @@ public class Ship : NetworkBehaviour
                     shieldHealthBar.value = shieldHealth;
                 }
 
-                if (shieldHealth < 0) 
+                if (shieldHealth <= 0) 
                 {
-                    NetworkIdentity.Destroy(this.playerShield.gameObject);
+                    RpcDestroytShield();
+                    //NetworkIdentity.Destroy(this.playerShield.gameObject);
                     shieldActive = false;
                 }
 
@@ -211,33 +211,27 @@ public class Ship : NetworkBehaviour
         }
     }
 
+    [ClientRpc]
+    void RpcDestroytShield()
+    {
+        Destroy(this.playerShield.gameObject);
+    }
+
     [Command]
     void CmdRespawnShield(uint netId)
     {
-        //RpcRespawnShield(netId);
-         // create shield object that will follow player around
-        var shield = Instantiate(shieldPrefab, 
-                             gameObject.transform.position, 
-                             Quaternion.identity, 
-                             this.transform);
-        //NetworkServer.Spawn(shield);
-
-        playerShield = shield.GetComponent<Shield>();
-
-        // this needs to be fixed because only the server can assign client authority, maybe put into a command?
-        playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+        RpcRespawnShield();
         shieldActive = true;
     }
 
     [ClientRpc]
-    void RpcRespawnShield(uint netId)
+    void RpcRespawnShield()
     {
          // create shield object that will follow player around
         var shield = Instantiate(shieldPrefab, 
                              gameObject.transform.position, 
                              Quaternion.identity, 
                              this.transform);
-        //NetworkServer.Spawn(shield);
 
         playerShield = shield.GetComponent<Shield>();
 
