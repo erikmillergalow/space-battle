@@ -18,18 +18,12 @@ public class Projectile : NetworkBehaviour
     public uint spawnedBy;
 
 
-    public override void OnStartClient() 
-    {
-    	GameObject spawner = NetworkServer.FindLocalObject(spawnedBy);
-
-    	// ignore collision with player who shoots on client
-    	Physics2D.IgnoreCollision(GetComponent<Collider2D>(), spawner.GetComponent<Collider2D>());
-    }
-
     // start is called before the first frame update
     void Start()
     {
     	Rigidbody2D body = gameObject.GetComponentInChildren<Rigidbody2D>();
+
+    	GameObject spawner = NetworkServer.FindLocalObject(spawnedBy);
         
         // modify projectile velocity based on ship movement, only in the
         // direction of the ship's movement. speed divided by 4 may change as
@@ -55,12 +49,12 @@ public class Projectile : NetworkBehaviour
     {
         if (collision.gameObject != origin && collision.gameObject.tag == "Shield") 
         {
-            this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
-
-            // trigger shield to appear (also need to deal shield damage)
-            triggerShield(collision.gameObject.GetComponent<Shield>());
-            
-            Destroy(this.gameObject);
+            if (spawnedBy != collision.gameObject.GetComponent<Shield>().netId)
+            {
+            	this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;
+           		triggerShield(collision.gameObject.GetComponent<Shield>());     
+            	Destroy(this.gameObject);
+            }
         }
         
         if (collision.gameObject != origin && collision.gameObject.tag == "Wall") 

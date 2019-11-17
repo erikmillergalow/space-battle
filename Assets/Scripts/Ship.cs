@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,17 +8,28 @@ public class Ship : NetworkBehaviour
 {
 	public float movementSpeed = 75f;
 	
+    public float playerHealthMax = 100f;
+    public float shieldHealthMax = 100f;
+
+    [SyncVar]
 	public float playerHealth = 100f;
+    [SyncVar]
 	public float shieldHealth = 100f;
 	public Slider shipHealthBar;
 	public Slider shieldHealthBar;
+    [SyncVar]
     public bool shieldActive;
+
+    // time to wait before respawning a shield (seconds)
+    public float shieldRechargeTime = 100f;
 
 	// Rigidbody2D allows for easy physics-based gameplay
 	private Rigidbody2D body;
     public GameObject projectilePrefab;
     public GameObject shieldPrefab;
     private Shield playerShield;
+
+    private Coroutine rechargeRoutine;
 
     // Start is called before the first frame update
     void Start()
@@ -34,8 +45,8 @@ public class Ship : NetworkBehaviour
             shipHealthBar = GameObject.FindGameObjectWithTag("ShipHealthBar").GetComponent<Slider>();
             shieldHealthBar = GameObject.FindGameObjectWithTag("ShieldHealthBar").GetComponent<Slider>();
 
-            playerHealth = 100;
-        	shieldHealth = 100;
+            playerHealth = playerHealthMax;
+        	shieldHealth = shieldHealthMax;
 
         	shipHealthBar.value = playerHealth;
         	shieldHealthBar.value = shieldHealth;
@@ -71,13 +82,18 @@ public class Ship : NetworkBehaviour
                                                         transform.up.normalized);
             CmdShoot(mouseVector, shipVelocityFactor);
         }
+
+        shieldHealthBar.value = shieldHealth;
+        shipHealthBar.value = playerHealth;
+
     }
 
     // FixedUpdate() is used for physics calculations and processed less than Update()
     void FixedUpdate() 
     {
 
-        if (!isLocalPlayer) {
+        if (!isLocalPlayer) 
+        {
             return;
         }
 
@@ -94,6 +110,7 @@ public class Ship : NetworkBehaviour
     		// point ship in direction of movement input
     		transform.up = body.velocity;
     	}
+
 	}
 
     [Command]
@@ -112,6 +129,13 @@ public class Ship : NetworkBehaviour
                                                   Quaternion.identity);
         Projectile projectile = projectileObject.GetComponent<Projectile>();
 
+        // allow projectiles out of the shooting player's shield
+        if (shieldActive)
+        {
+            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
+                                      playerShield.GetComponent<Collider2D>());
+        }
+
         // position of mouse click - position of player = direction of projectile
         projectile.targetVector = mouseVector - gameObject.transform.position;
 
@@ -123,13 +147,6 @@ public class Ship : NetworkBehaviour
         // ignore collisions between shooter and projectile locally
         Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
                                   GetComponent<Collider2D>());
-
-        // allow projectiles out of the shooting player's shield
-        if (shieldActive)
-        {
-            Physics2D.IgnoreCollision(projectileObject.GetComponent<Collider2D>(), 
-                                      playerShield.GetComponent<Collider2D>());
-        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -144,20 +161,9 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdTakeDamage(uint netId, float damageAmount) 
     {
-    	RpcTakeDamage(netId, damageAmount);
-    }
-
-    [ClientRpc]
-    void RpcTakeDamage(uint netId, float damageAmount)
-    {
         if (this.netId == netId) 
         {
             playerHealth -= damageAmount;
-
-            if (isLocalPlayer) 
-            {
-            	shipHealthBar.value = playerHealth;
-            }
 
             if (playerHealth < 0) 
             {
@@ -169,37 +175,93 @@ public class Ship : NetworkBehaviour
     // player shield health and damage
     public void TakeShieldDamage(uint netId, float damageAmount)
     {
-    	CmdTakeShieldDamage(netId, damageAmount);
+        if (isServer) 
+        {
+            if (shieldActive)
+            {
+                if (playerShield.netId == netId) 
+                {
+                    shieldHealth -= damageAmount;
+
+                    if (shieldHealth <= 0) 
+                    {
+                        RpcDestroyShield();
+                        shieldActive = false;
+                    }
+
+                    // start countdown to when shield wil recharge
+                    if (rechargeRoutine != null)
+                    {
+                        StopCoroutine(rechargeRoutine);
+                    }
+
+                    rechargeRoutine = StartCoroutine("ShieldRechargeTimer");
+                }
+            }
+        }
+        else
+        {
+            CmdTakeShieldDamage(netId, damageAmount);
+        }
+    	
     }
 
     [Command]
     void CmdTakeShieldDamage(uint netId, float damageAmount) 
     {
-        RpcTakeShieldDamage(netId, damageAmount);
+        TakeShieldDamage(netId, damageAmount);
     }
 
     [ClientRpc]
-    void RpcTakeShieldDamage(uint netId, float damageAmount)
+    void RpcDestroyShield()
     {
-        if (shieldActive)
-        {
-            if (playerShield.netId == netId) 
-            {
-                shieldHealth -= damageAmount;
-                
-                if (isLocalPlayer)
-                {
-    				shieldHealthBar.value = shieldHealth;
-                }
+        Destroy(this.playerShield.gameObject);
+    }
 
-                if (shieldHealth < 0) 
-                {
-                    NetworkIdentity.Destroy(this.playerShield.gameObject);
-                    shieldActive = false;
-                }
-            }
+    [Command]
+    void CmdRespawnShield(uint netId)
+    {
+        RpcRespawnShield();
+        shieldActive = true;
+    }
+
+    [ClientRpc]
+    void RpcRespawnShield()
+    {
+         // create shield object that will follow player around
+        var shield = Instantiate(shieldPrefab, 
+                             gameObject.transform.position, 
+                             Quaternion.identity, 
+                             this.transform);
+
+        playerShield = shield.GetComponent<Shield>();
+
+        // this needs to be fixed because only the server can assign client authority, maybe put into a command?
+        playerShield.GetComponent<NetworkIdentity>().AssignClientAuthority(this.GetComponent<NetworkIdentity>().connectionToClient);
+    }
+
+    IEnumerator ShieldRechargeTimer()
+    {
+        yield return new WaitForSeconds(2f);
+
+        if (!shieldActive) {
+            CmdRespawnShield(netId); 
+        }
+
+        while(shieldHealth < shieldHealthMax)
+        {
+            CmdAddShieldHealth(netId);
+            yield return new WaitForSeconds(0.01f);
         }
     }
 
+    [Command]
+    void CmdAddShieldHealth(uint netId) 
+    {
+        if (this.netId == netId)
+        {
+            shieldHealth += 1f;
+        }
+    }
 }
 

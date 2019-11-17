@@ -32,10 +32,14 @@ public class Shield : NetworkBehaviour
     {
         if (collision.gameObject.tag == "Projectile") 
         {
-            // call shield damage function on parent Ship
+                
             Ship parent = transform.parent.gameObject.GetComponent<Ship>();
-            float damageAmount = collision.gameObject.GetComponent<Projectile>().damageAmount;
-            parent.TakeShieldDamage(netId, damageAmount);
+            if (parent.isServer)
+            {
+                float damageAmount = collision.gameObject.GetComponent<Projectile>().damageAmount;
+                // call shield damage function on parent Ship
+                parent.TakeShieldDamage(netId, damageAmount);
+            }
         }
     }
 }
