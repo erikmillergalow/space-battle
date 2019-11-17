@@ -49,10 +49,6 @@ public class Projectile : NetworkBehaviour
     {
         if (collision.gameObject != origin && collision.gameObject.tag == "Shield") 
         {
-
-        	print(spawnedBy);
-        	print(collision.gameObject.GetComponent<Shield>().netId);
-
             if (spawnedBy != collision.gameObject.GetComponent<Shield>().netId)
             {
             	this.gameObject.GetComponent<Rigidbody2D>().isKinematic = true;

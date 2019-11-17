@@ -57,7 +57,6 @@ public class Ship : NetworkBehaviour
                              gameObject.transform.position, 
                              Quaternion.identity, 
                              this.transform);
-        //NetworkServer.Spawn(shield);
 
         playerShield = shield.GetComponent<Shield>();
         // this needs to be fixed because only the server can assign client authority, maybe put into a command?
@@ -93,7 +92,8 @@ public class Ship : NetworkBehaviour
     void FixedUpdate() 
     {
 
-        if (!isLocalPlayer) {
+        if (!isLocalPlayer) 
+        {
             return;
         }
 
@@ -161,7 +161,6 @@ public class Ship : NetworkBehaviour
     [Command]
     void CmdTakeDamage(uint netId, float damageAmount) 
     {
-    	//RpcTakeDamage(netId, damageAmount);
         if (this.netId == netId) 
         {
             playerHealth -= damageAmount;
@@ -176,43 +175,45 @@ public class Ship : NetworkBehaviour
     // player shield health and damage
     public void TakeShieldDamage(uint netId, float damageAmount)
     {
-    	CmdTakeShieldDamage(netId, damageAmount);
+        if (isServer) 
+        {
+            if (shieldActive)
+            {
+                if (playerShield.netId == netId) 
+                {
+                    shieldHealth -= damageAmount;
+
+                    if (shieldHealth <= 0) 
+                    {
+                        RpcDestroyShield();
+                        shieldActive = false;
+                    }
+
+                    // start countdown to when shield wil recharge
+                    if (rechargeRoutine != null)
+                    {
+                        StopCoroutine(rechargeRoutine);
+                    }
+
+                    rechargeRoutine = StartCoroutine("ShieldRechargeTimer");
+                }
+            }
+        }
+        else
+        {
+            CmdTakeShieldDamage(netId, damageAmount);
+        }
+    	
     }
 
     [Command]
     void CmdTakeShieldDamage(uint netId, float damageAmount) 
     {
-        if (shieldActive)
-        {
-            if (playerShield.netId == netId) 
-            {
-                shieldHealth -= damageAmount;
-                
-                if (isLocalPlayer)
-                {
-                    shieldHealthBar.value = shieldHealth;
-                }
-
-                if (shieldHealth <= 0) 
-                {
-                    RpcDestroytShield();
-                    //NetworkIdentity.Destroy(this.playerShield.gameObject);
-                    shieldActive = false;
-                }
-
-                // start countdown to when shield wil recharge
-                if (rechargeRoutine != null)
-                {
-                    StopCoroutine(rechargeRoutine);
-                }
-
-                rechargeRoutine = StartCoroutine("ShieldRechargeTimer");
-            }
-        }
+        TakeShieldDamage(netId, damageAmount);
     }
 
     [ClientRpc]
-    void RpcDestroytShield()
+    void RpcDestroyShield()
     {
         Destroy(this.playerShield.gameObject);
     }
@@ -241,13 +242,11 @@ public class Ship : NetworkBehaviour
 
     IEnumerator ShieldRechargeTimer()
     {
-        print("waiting to recharge shield");
         yield return new WaitForSeconds(2f);
 
         if (!shieldActive) {
             CmdRespawnShield(netId); 
         }
-
 
         while(shieldHealth < shieldHealthMax)
         {
