@@ -15,10 +15,12 @@ public class Ship : NetworkBehaviour
 	public float playerHealth = 100f;
     [SyncVar]
 	public float shieldHealth = 100f;
-	public Slider shipHealthBar;
-	public Slider shieldHealthBar;
     [SyncVar]
     public bool shieldActive;
+    
+	public Slider shipHealthBar;
+	public Slider shieldHealthBar;
+
 
     // time to wait before respawning a shield (seconds)
     public float shieldRechargeTime = 100f;

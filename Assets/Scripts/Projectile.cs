@@ -71,8 +71,11 @@ public class Projectile : NetworkBehaviour
 
     void triggerShield(Shield shield)
     {
-        var currentShieldColor = shield.sprite.color;
-        shield.sprite.color = new Color(currentShieldColor.r, currentShieldColor.g, currentShieldColor.b, 1f);
+        Ship parent = shield.transform.parent.gameObject.GetComponent<Ship>();
+
+        // shield turns red as health decreases
+        float red_amount = (parent.shieldHealthMax - parent.shieldHealth) / parent.shieldHealthMax;
+        shield.sprite.color = new Color(red_amount, 1f - red_amount + 0.2f, 1f - red_amount, 1f);
     }
 
 }
